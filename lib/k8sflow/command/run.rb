@@ -8,7 +8,7 @@ require 'docker'
 
 module K8sflow
   module Utils
-    class Heroku
+    class HerokuClient
       HEROKU_API_HOST = "api.heroku.com"
       attr_accessor  :heroku, :api_token
       class << self
@@ -69,7 +69,7 @@ module K8sflow
 
       option :port, "-p", "--port  ctn_port:host_port", Array, "Publish a container's port(s) to the host"
       option :port_all, "-P", "--port-all", Array, "Publish all exposed ports to random ports"
-      option :detach, "-d", "--detach", "daemonize container"
+      option :detach, "-d", "--detach", "daemonize container", default: false
       option :tag, "-t", "--tag TAG", "image-tag"
       option :repo, "-r", "--repo REPO", "image-repository"
       option :app, "-A", "--app APPNAME", "application name"
@@ -77,14 +77,14 @@ module K8sflow
       option :heroku, "--heroku APP", "get all envs from heroku"
       option :heroku_db, "--heroku-db", "get DB envs only from heroku"
       option :tty, "--[no-]tty", "Use tty"
-      option :docker_api, "-h", "--host", "docker api endpoint"
+      option :docker_api, "-h", "--host", "docker api endpoint", default: "tcp://localhost:4243"
 
 
       class << self
         attr_accessor :shortcuts, :defaults
 
         def defaults
-          @default ||= {}
+          @defaults ||= {}
         end
 
         def shortcuts
@@ -112,7 +112,7 @@ module K8sflow
             end
           end
           if options.has_key?(:heroku)
-            envs.merge!( K8sflow::Utils::Heroku.envs(options[:heroku], options[:heroku_db]))
+            envs.merge!( K8sflow::Utils::HerokuClient.envs(options[:heroku], options[:heroku_db]))
           end
           pp envs
           return envs
@@ -122,7 +122,7 @@ module K8sflow
           Docker.url = options[:docker_api]
           container_info =  {
             'Cmd' => cmd.split(" "),
-            'Image' => options[:tag],
+            'Image' => "#{options[:repo]}:#{options[:tag]}",
             'Env' => envs.map{|k| "#{k[0]}=#{k[1]}"},
             'OpenStdin' => true
           }
@@ -141,15 +141,16 @@ module K8sflow
           pp container_info
           container = Docker::Container.create(container_info)
           puts "container created with id: #{container.id}"
+          container.start
           if !options[:detach]
             puts "docker -H #{Docker.url} attach #{container.id}"
             exec("docker -H #{Docker.url} attach #{container.id}")
           end
         end
 
-        def call(options, args)
-          options = default.merge(options)
-          cmd = get_cmd(args)
+        def call
+          pp options
+          cmd = get_cmd(arguments)
           envs = env_vars(options)
           docker_run(cmd, envs, options)
         end

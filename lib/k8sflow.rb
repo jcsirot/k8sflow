@@ -8,3 +8,4 @@ Clitopic.parser = Clitopic::PARSERS[:optparse]
 Clitopic.commands_dir = "#{__FILE__}/k8sflow/command"
 
 K8sflow::Run::Index.defaults = {docker_api: 'tcp://localhost:4243', envs: ['FORCE_HTTPS=true', 'RAILS_ENV=production'], repo: 'arkena/osm-backend'}
+K8sflow::Run::Index.shortcuts = {'c' => 'rails console', 's' => 'rails server'}
