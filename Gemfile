@@ -2,6 +2,7 @@ source 'http://rubygems.org'
 
 gem 'json'
 gem 'clamp'
+gem 'docker-api'
 #gem 'httparty'
 #gem 'activemodel'
 group :development, :test do

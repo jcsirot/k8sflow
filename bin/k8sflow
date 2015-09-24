@@ -1,0 +1,4 @@
+#!/usr/bin/env ruby
+require 'k8sflow'
+
+K8sflow::Cli.run(ARGV)
