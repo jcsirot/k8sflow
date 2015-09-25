@@ -81,11 +81,7 @@ module K8sflow
 
 
       class << self
-        attr_accessor :shortcuts, :defaults
-
-        def defaults
-          @defaults ||= {}
-        end
+        attr_accessor :shortcuts
 
         def shortcuts
           @shortcuts ||= {}
