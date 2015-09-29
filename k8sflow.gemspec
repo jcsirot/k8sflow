@@ -15,7 +15,7 @@ Gem::Specification.new do |s|
   s.files = FileList['README.md', 'License', 'Changelog', 'lib/**/*.rb', 'lib/vendor/**/*.rb'].to_a
   s.test_files = FileList['spec/**/*.rb'].to_a
   s.executables << 'k8sflow'
-  # s.add_dependency 'json', [ "~> 1.8.1" ]
+  s.add_dependency 'cli-topic', [ ">= 0.9" ]
   # s.add_development_dependency 'rspec'
 
   s.required_ruby_version = '>= 2.0.0'

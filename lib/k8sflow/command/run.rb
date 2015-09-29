@@ -1,70 +1,21 @@
 require 'optparse'
 require 'optparse/time'
-require 'pp'
-require 'heroku-api'
-require 'netrc'
-require 'json'
 require 'docker'
-
+require 'k8sflow/utils/heroku'
 module K8sflow
-  module Utils
-    class HerokuClient
-      HEROKU_API_HOST = "api.heroku.com"
-      attr_accessor  :heroku, :api_token
-      class << self
-        def client
-          if @client.nil?
-            user, token = netrc[HEROKU_API_HOST]
-            @client = Heroku::API.new(:api_key => token)
-          end
-          return @client
-        end
-
-        def netrc # :nodoc:
-          @netrc ||= begin
-                       File.exists?(netrc_path) ? Netrc.read(netrc_path) : raise(StandardError)
-                     rescue => error
-                       puts netrc_path
-                       raise ".netrc missing or no entry found. Try `heroku auth:login`"
-                     end
-        end
-
-        def netrc_path # :nodoc:
-          default = Netrc.default_path
-          encrypted = default + ".gpg"
-          if File.exists?(encrypted)
-            encrypted
-          else
-            default
-          end
-        end
-
-        def envs(app, db_only=true)
-          envs = client.get_config_vars(app).body
-          #      pp "overrided vars: #{@options.envvars}"
-          db_vars = ["DATABASE_URL",
-                     "MEMCACHIER_PASSWORD",
-                     "MEMCACHIER_SERVERS",
-                     "MEMCACHIER_USERNAME",
-                     "REDISTOGO_URL",
-                     "REDIS_PROVIDER"]
-          if db_only == true
-            envs.select!{|k,v| db_vars.index(k) != nil}
-          end
-          pp envs
-          return envs
-        end
-      end
-    end
-  end
-end
-
-module K8sflow
-  module Run
-    class Index < Clitopic::Command::Base
+  module Command
+    class Run < Clitopic::Command::Base
       register name: 'index',
       banner: 'Usage: k8sflow run [options] CMD',
-      description: 'Run CMD on a (de)attached container',
+      description: "Run CMD on a (de)attached container
+
+Exemples:
+Run a rails console
+$ k8sflow run -t 2.27.3 -r mydocker/repo -e APP_ENV=production -h tcp://docker-host:4243 rails console
+
+Run a web server detached and bind container port to host port
+$ k8sflow run -t 2.10 -p 3000:3000 'run server -p 3000'
+",
       topic: {name: 'run', description: 'Run CMD on a (de)attached container'}
 
       option :port, "-p", "--port  ctn_port:host_port", Array, "Publish a container's port(s) to the host"
@@ -78,13 +29,13 @@ module K8sflow
       option :heroku_db, "--heroku-db", "get DB envs only from heroku"
       option :tty, "--[no-]tty", "Use tty"
       option :docker_api, "-h", "--host", "docker api endpoint", default: "tcp://localhost:4243"
-
+      option :aliases, "--aliases a=x,b=y", "commands aliases, usefull in the default file"
 
       class << self
-        attr_accessor :shortcuts
+        attr_accessor :aliases
 
-        def shortcuts
-          @shortcuts ||= {}
+        def aliases
+          @aliases ||= {}
         end
 
         def get_cmd(args)
@@ -92,7 +43,7 @@ module K8sflow
             raise ArgumentError.new('no CMD')
           else
             cmd = args.join(" ").strip
-            cmd = shortcuts[cmd] if shortcuts.has_key?(cmd)
+            cmd = aliases[cmd] if aliases.has_key?(cmd)
             return cmd
           end
         end
@@ -136,8 +87,8 @@ module K8sflow
           end
           pp container_info
           container = Docker::Container.create(container_info)
-          puts "container created with id: #{container.id}"
           container.start
+          puts "container created with id: #{container.id}"
           if !options[:detach]
             puts "docker -H #{Docker.url} attach #{container.id}"
             exec("docker -H #{Docker.url} attach #{container.id}")

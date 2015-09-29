@@ -1,7 +1,7 @@
 source 'http://rubygems.org'
 
 gem 'json'
-gem 'clamp'
+gem 'cli-topic'
 gem 'docker-api'
 #gem 'httparty'
 #gem 'activemodel'
