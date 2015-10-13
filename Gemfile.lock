@@ -1,3 +1,9 @@
+GIT
+  remote: https://github.com/joerocklin/haproxy-ruby.git
+  revision: 451f008b22d328369beda2235487722302c78d53
+  specs:
+    haproxy (0.0.6)
+
 GEM
   remote: http://rubygems.org/
   specs:
@@ -28,6 +34,7 @@ PLATFORMS
 DEPENDENCIES
   cli-topic
   docker-api
+  haproxy!
   json
   rake
   rspec
