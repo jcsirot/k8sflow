@@ -4,6 +4,7 @@ require 'docker'
 require 'k8sflow/utils/heroku'
 module K8sflow
   module Command
+
     class Run < Clitopic::Command::Base
       register name: 'index',
       banner: 'Usage: k8sflow run [options] CMD',
