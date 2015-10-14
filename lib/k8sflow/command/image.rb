@@ -2,7 +2,7 @@ require 'erb'
 module K8sflow
 
   module Image
-    class ImageBase
+    class ImageBase < Clitopic::Command::Base
       class << self
 
         def kv_parse(list)
@@ -18,6 +18,7 @@ module K8sflow
 
         def vars
           if @vars.nil?
+            @vars = {}
             if !options[:build_vars].nil?
               if options[:build_vars].is_a?(Hash)
                 @vars = options[:build_vars]
@@ -32,8 +33,9 @@ module K8sflow
                 @vars.merge!(kv_parse(options[:vars]))
               end
             end
-            puts @vars
           end
+
+          @vars["tag"] = @options[:tag]
           return @vars
         end
 
@@ -53,9 +55,6 @@ module K8sflow
           @options[:tag]
         end
 
-        def branch
-          @options[:branch]
-        end
 
         def create_dockerfile
           tag = @options[:tag]
@@ -68,13 +67,14 @@ module K8sflow
             puts "- Copy files: #{file_list}"
             FileUtils.cp(file_list, dir)
           end
-          puts "- Read Dockerfile template"
+          puts "- Read Dockerfile template: #{@options[:path]}/#{@options[:tpl]}"
           tpl = "#{@options[:path]}/#{@options[:tpl]}"
           File.open(tpl, 'rb') do |file|
             tpl = file.read
           end
           b = binding
-          puts "- Write Dockerfile"
+          puts "- Write Dockerfile: #{dir}/Dockerfile"
+          puts "  with vars:\n#{vars.map{|k,v| "   #{k}: #{v}"}.join("\n")}"
           File.open("#{dir}/Dockerfile", 'wb') do |file|
             file.write(ERB.new(tpl).result b)
           end
@@ -82,46 +82,17 @@ module K8sflow
           puts  "-----------------------------------------------"
         end
 
-        def exec_docker_build(tag)
-          @build = @builds[tag]
-          puts @build
-          puts tag
-          @build[:docker] ||= {}
-          @build[:docker][:build] = "docker -H #{@docker_api} build -t #{vars['registry']}:#{tag} -f #{tag}/Dockerfile ."
-          puts "docker build -t #{vars['registry']}:#{tag} -f #{tag}/Dockerfile"
-          system(@build[:docker][:build])
+        def dockerbuild
+          dir = "#{@options[:path]}/#{@options[:tag]}"
+          cmd = "docker -H #{@options[:docker_api]} build #{@options[:build_opts]} -t #{@options[:registry]}:#{tag}  #{dir} "
+          puts cmd
+          system(cmd)
         end
 
-        def exec_docker_push(tag)
-          @build = @builds[tag]
-          @build[:docker] ||= {}
-          @build[:docker][:push] = "docker -H #{@docker_api} push #{vars['registry']}:#{tag}"
-          puts "docker push #{vars['registry']}:#{tag}"
-          system(@build[:docker][:push])
-        end
-
-        def dockerbuilds(tag=nil)
-          if tag.nil?
-            threads = []
-            @builds.each do |t, b|
-              threads << Thread.new {exec_docker_build(t)}
-            end
-            threads.each { |thr| thr.join }
-          else
-            exec_docker_build(tag)
-          end
-        end
-
-        def dockerpush(tag=nil)
-          if tag.nil?
-            threads = []
-            @builds.each do |t, b|
-              threads << Thread.new {exec_docker_push(t)}
-            end
-            threads.each { |thr| thr.join }
-          else
-            exec_docker_push(tag)
-          end
+        def dockerpush
+          cmd = "docker -H #{@options[:docker_api]}  push #{@options[:registry]}:#{tag}"
+          puts cmd
+          system(cmd)
         end
 
       end
@@ -132,38 +103,52 @@ module K8sflow
       register name: 'image',
       description: 'Mange image lifecylces'
 
-      option :repository, '-r', '--repository DOCKER_REPO', 'Docker repository to pull/fetch images'
+      option :registry, '-r', '--registry DOCKER_REPO', 'Docker registry to pull/fetch images'
       option :path, '-p',  '--path DOCKERFILE PATH', 'dockerfiles source directory to'
       option :build_vars, "--build-vars key=value,key=value" , Array, "Default variables"
-      option :docker_api, "-h", "--host", "docker api endpoint", default: "tcp://localhost:4243"
+      option :docker_api, "-H", "--host", "docker api endpoint", default: "tcp://localhost:4243"
+      option :tag, '-t', '--tag TAG', "Image tag", default: 'latest'
     end
 
 
-    class Dockerfile < Clitopic::Command::Base
+    class Dockerfile < ImageBase
       register name: 'dockerfile',
-      banner: 'dockerfile [options]',
+      banner: 'image:dockerfile [options]',
       description: 'Generate a dockerfile with templated vars .',
       topic: 'image'
 
       option :files, "-f", "--files FILE1,FILE2", Array, "List files to copy in dockerfile directory, i.e 'files/*',/etc/conf.cfg'"
       option :tpl, "-l", "--tpl=Dockerfile", "The Dockerfile Template", default: 'Dockerfile.tpl'
-      option :vars, "-x", "--vars=VARS", "Variables required by the dockerfile"
-      option :tag, '-t', '--tag TAG', "Image tag", default: 'latest'
-      option :tag, '-b', '--branch BRANCH', "Image tag", default: 'master'
+      option :vars, "-x", "--vars=VARS", Array, "Variables required by the dockerfile"
+      option :tag, '-t', '--tag TAG', "Image tag", default: 'master'
 
       def self.call
-        #      puts @options
         create_dockerfile
       end
     end
 
-    class Push < Clitopic::Command::Base
-      register name: 'push',
-      description: 'push image to docker  registry',
-      banner: 'push [options] tag',
+    class Build < ImageBase
+      register name: 'build',
+      description: 'build docker image',
+      banner: 'image:build [OPTIONS]',
       topic: 'image'
 
+      option :build, "--build OPTS", "docker build options"
       def self.call
+        dockerbuild
+      end
+    end
+
+    class Push < ImageBase
+      register name: 'push',
+      description: 'push dockerimage to docker hub',
+      banner: 'image:push [OPTIONS]',
+      topic: 'image'
+
+      option :build, "--build=[OPTS]", "docker build options"
+      def self.call
+        dockerbuild if @options[:build] != nil
+        dockerpush
       end
     end
 

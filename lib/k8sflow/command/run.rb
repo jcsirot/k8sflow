@@ -23,7 +23,7 @@ $ k8sflow run -t 2.10 -p 3000:3000 'run server -p 3000'
       option :port_all, "-P", "--port-all", Array, "Publish all exposed ports to random ports"
       option :detach, "-d", "--detach", "daemonize container", default: false
       option :tag, "-t", "--tag TAG", "image-tag"
-      option :repo, "-r", "--repo REPO", "image-repository"
+      option :registry, "-r", "--registry REPO", "image-repository"
       option :app, "-A", "--app APPNAME", "application name"
       option :envs, "-e", "--env VAR=VALUE,VAR2=VALUE2", Array, "envvars list"
       option :heroku, "--heroku APP", "get all envs from heroku"
@@ -44,6 +44,10 @@ $ k8sflow run -t 2.10 -p 3000:3000 'run server -p 3000'
             raise ArgumentError.new('no CMD')
           else
             cmd = args.join(" ").strip
+            puts cmd
+            if !@options[:aliases].nil? && @options[:aliases].is_a?(Hash)
+              @aliases.merge!(@options[:aliases])
+            end
             cmd = aliases[cmd] if aliases.has_key?(cmd)
             return cmd
           end
@@ -70,7 +74,7 @@ $ k8sflow run -t 2.10 -p 3000:3000 'run server -p 3000'
           Docker.url = options[:docker_api]
           container_info =  {
             'Cmd' => cmd.split(" "),
-            'Image' => "#{options[:repo]}:#{options[:tag]}",
+            'Image' => "#{options[:registry]}:#{options[:tag]}",
             'Env' => envs.map{|k| "#{k[0]}=#{k[1]}"},
             'OpenStdin' => true
           }
