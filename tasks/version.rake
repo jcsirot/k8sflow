@@ -12,7 +12,7 @@ namespace :version do
     f = File.new($versionfile, 'rb')
     r = f.read
     f.close
-    r = r.gsub("VERSION = #{$current_version}", "VERSION = #{version}")
+    r = r.gsub("VERSION = '#{$current_version}'", "VERSION = '#{version}'")
     File.open($versionfile, 'wb') do |f|
       f.write r
     end
