@@ -19,13 +19,6 @@ module K8sflow
         def vars
           if @vars.nil?
             @vars = {}
-            if !options[:build_vars].nil?
-              if options[:build_vars].is_a?(Hash)
-                @vars = options[:build_vars]
-              else
-                @vars = kv_parse(options[:build_vars])
-              end
-            end
             if !options[:vars].nil?
               if options[:vars].is_a?(Hash)
                 @vars.merge!(options[:vars])
@@ -41,12 +34,14 @@ module K8sflow
 
         def files
           f = []
-          options[:files].each do |file|
-            if !file.start_with?("/")
-              file = "#{@options[:path]}/#{file}"
+          if @options.has_key?(:files)
+            @options[:files].each do |file|
+              if !file.start_with?("/")
+                file = "#{@options[:path]}/#{file}"
+              end
+              file_list = Dir.glob(file)
+              f << file_list
             end
-            file_list = Dir.glob(file)
-            f << file_list
           end
           return f
         end
@@ -105,9 +100,16 @@ module K8sflow
 
       option :registry, '-r', '--registry DOCKER_REPO', 'Docker registry to pull/fetch images'
       option :path, '-p',  '--path DOCKERFILE PATH', 'dockerfiles source directory to'
-      option :build_vars, "--build-vars key=value,key=value" , Array, "Default variables"
       option :docker_api, "-H", "--host", "docker api endpoint", default: "tcp://localhost:4243"
-      option :tag, '-t', '--tag TAG', "Image tag", default: 'latest'
+      option :tag, '-t', '--tag TAG', "Image tag", default: 'lateb'
+
+      #dockerfile templates
+      option :files, "-f", "--files FILE1,FILE2", Array, "List files to copy in dockerfile directory, i.e 'files/*',/etc/conf.cfg'"
+      option :tpl, "-l", "--tpl=Dockerfile", "The Dockerfile Template", default: 'Dockerfile.tpl'
+      option :vars, "-x", "--vars=VARS", Array, "Variables required by the dockerfile"
+
+      #docker build options
+      option :build_opts, "--build OPTS", "docker build options"
     end
 
 
@@ -117,12 +119,8 @@ module K8sflow
       description: 'Generate a dockerfile with templated vars .',
       topic: 'image'
 
-      option :files, "-f", "--files FILE1,FILE2", Array, "List files to copy in dockerfile directory, i.e 'files/*',/etc/conf.cfg'"
-      option :tpl, "-l", "--tpl=Dockerfile", "The Dockerfile Template", default: 'Dockerfile.tpl'
-      option :vars, "-x", "--vars=VARS", Array, "Variables required by the dockerfile"
-      option :tag, '-t', '--tag TAG', "Image tag", default: 'master'
-
       def self.call
+        puts @options
         create_dockerfile
       end
     end
@@ -133,8 +131,10 @@ module K8sflow
       banner: 'image:build [OPTIONS]',
       topic: 'image'
 
-      option :build, "--build OPTS", "docker build options"
+      option :skip_dockerfile, "--skip-dockerfile", "-s", "Skip Create dockerfile"
       def self.call
+        puts @options
+        create_dockerfile unless @options[:skip_dockerfile]
         dockerbuild
       end
     end
@@ -145,12 +145,15 @@ module K8sflow
       banner: 'image:push [OPTIONS]',
       topic: 'image'
 
-      option :build, "--build=[OPTS]", "docker build options"
+      option :skip_build, "--skip-build", "skip docker build"
+      option :skip_dockerfile, "--skip-dockerfile", "skip create dockerfile"
       def self.call
-        dockerbuild if @options[:build] != nil
+        create_dockerfile unless @options[:skip_dockerfile]
+        dockerbuild unless @options[:skip_build]
         dockerpush
       end
     end
+
 
     class List < Clitopic::Command::Base
       register name: 'list',
