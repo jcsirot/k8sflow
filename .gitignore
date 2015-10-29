@@ -3,3 +3,4 @@ pkg/*
 .bundle
 coverage/
 .k8sflow
+.k8sflow.yml

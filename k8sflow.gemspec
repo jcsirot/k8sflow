@@ -15,8 +15,11 @@ Gem::Specification.new do |s|
   s.files = FileList['README.md', 'License', 'Changelog', 'lib/**/*.rb', 'lib/vendor/**/*.rb'].to_a
   s.test_files = FileList['spec/**/*.rb'].to_a
   s.executables << 'k8sflow'
-  s.add_dependency 'cli-topic', [ ">= 0.9" ]
-  s.add_dependency 'docker-api', [ ">= 1.22" ]
+
+  s.add_dependency 'cli-topic', [ "~> 0.9" ]
+  s.add_dependency 'docker-api', [ "~> 1.22" ]
+  s.add_dependency 'heroku-api', [ "~> 0.3" ]
+  s.add_dependency 'netrc', [ "~> 0.7" ]
 
   # s.add_development_dependency 'rspec'
 
