@@ -1,6 +1,7 @@
 require 'clitopic'
 require 'k8sflow/version'
 
+Clitopic.name = 'k8sflow'
 Clitopic.version = K8sflow::VERSION
 #Clitopic.parser = Clitopic::Parser::OptParser
 Clitopic.commands_dir = "#{__FILE__}/k8sflow/command"
