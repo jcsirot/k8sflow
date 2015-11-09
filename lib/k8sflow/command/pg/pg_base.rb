@@ -1,4 +1,4 @@
-require 'pg_topic'
+require_relative 'pg_topic'
 
 module K8sflow
   module Pg

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 module K8sflow
-  VERSION = '0.11.0'
+  VERSION = '0.11.1'
   VERSION_NAMES = {1 => 'France II',
     2 => 'R.C. Rickmers',
     3 => 'Thomas W. Lawson',
