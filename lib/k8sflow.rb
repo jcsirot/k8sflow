@@ -7,7 +7,8 @@ Clitopic.version = K8sflow::VERSION
 Clitopic.commands_dir = "#{__FILE__}/k8sflow/command"
 Clitopic.default_files = [File.join(Dir.getwd, ".k8sflow.yml"), File.join(Dir.home, ".k8sflow.yml")]
 
-
+Clitopic.help_page = "https://github.com/ant31/k8sflow/wiki"
+Clitopic.issue_report = "https://github.com/ant31/k8sflow/issues/new"
 require 'k8sflow/cli'
 
 
