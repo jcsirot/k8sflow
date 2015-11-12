@@ -7,8 +7,8 @@ module K8sflow
 
     class Run < Clitopic::Command::Base
       register name: 'index',
-      banner: 'Usage: k8sflow run [options] CMD',
-      description: "Run CMD on a (de)attached container
+               banner: 'Usage: k8sflow run [options] CMD',
+               description: "Run CMD on a (de)attached container
 
 Exemples:
 Run a rails console
@@ -17,7 +17,7 @@ $ k8sflow run -t 2.27.3 -r mydocker/repo -e APP_ENV=production -h tcp://docker-h
 Run a web server detached and bind container port to host port
 $ k8sflow run -t 2.10 -p 3000:3000 'run server -p 3000'
 ",
-      topic: {name: 'run', description: 'Run CMD on a (de)attached container'}
+               topic: {name: 'run', description: 'Run CMD on a (de)attached container'}
 
       option :port, "-p", "--port  ctn_port:host_port", Array, "Publish a container's port(s) to the host"
       option :port_all, "-P", "--port-all", Array, "Publish all exposed ports to random ports"
