@@ -1,7 +1,7 @@
 source 'http://rubygems.org'
 
 gem 'json'
-gem 'cli-topic'
+gem 'cli-topic', "~> 0.9.8"
 gem 'docker-api'
 #gem 'haproxy', git: 'https://github.com/joerocklin/haproxy-ruby.git'
 gem 'heroku-api'

@@ -1,7 +1,7 @@
 GEM
   remote: http://rubygems.org/
   specs:
-    cli-topic (0.9.6)
+    cli-topic (0.9.8)
     codeclimate-test-reporter (0.4.8)
       simplecov (>= 0.7.1, < 1.0.0)
     diff-lcs (1.2.5)
@@ -42,7 +42,7 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
-  cli-topic
+  cli-topic (~> 0.9.8)
   codeclimate-test-reporter
   docker-api
   heroku-api
