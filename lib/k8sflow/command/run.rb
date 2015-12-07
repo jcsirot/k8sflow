@@ -29,7 +29,7 @@ $ k8sflow run -t 2.10 -p 3000:3000 'run server -p 3000'
       option :heroku, "--heroku APP", "get all envs from heroku"
       option :heroku_db, "--heroku-db", "get DB envs only from heroku"
       option :tty, "--[no-]tty", "Use tty"
-      option :docker_api, "-h", "--host", "docker api endpoint", default: "tcp://localhost:4243"
+      option :docker_api, "-h", "--host", "docker api endpoint", default: "unix://"
       option :aliases, "--aliases a=x,b=y", "commands aliases, usefull in the default file"
 
       class << self
@@ -84,7 +84,7 @@ $ k8sflow run -t 2.10 -p 3000:3000 'run server -p 3000'
           if options[:port]
             ctn_port, host_port = options[:port].split(":")
             container_info["HostConfig"] = {
-              "PortBindings": { "#{ctn_port}/tcp": [{ "HostPort": host_port.to_s}] }
+              "PortBindings" => { "#{ctn_port}/tcp" => [{ "HostPort" => host_port.to_s}] }
             }
           end
           if options[:port_all] == true

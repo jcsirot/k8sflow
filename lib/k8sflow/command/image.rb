@@ -100,8 +100,8 @@ module K8sflow
 
       option :registry, '-r', '--registry DOCKER_REPO', 'Docker registry to pull/fetch images'
       option :path, '-p',  '--path DOCKERFILE PATH', 'dockerfiles source directory to'
-      option :docker_api, "-H", "--host", "docker api endpoint", default: "tcp://localhost:4243"
-      option :tag, '-t', '--tag TAG', "Image tag", default: 'lateb'
+      option :docker_api, "-H", "--host", "docker api endpoint", default: "unix://"
+      option :tag, '-t', '--tag TAG', "Image tag", default: 'latest'
 
       #dockerfile templates
       option :files, "-f", "--files FILE1,FILE2", Array, "List files to copy in dockerfile directory, i.e 'files/*',/etc/conf.cfg'"
