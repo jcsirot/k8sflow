@@ -13,7 +13,7 @@ module K8sflow
       option :confirm, "--confirm CONFIRM", "Command line confirmation, no prompt"
 
       def self.call
-        file = option[:src]
+        file = options[:src]
         puts "PGSSLMODE=#{ssl?} PGPASSWORD=#{database[:password]} pg_restore --port #{database[:port]} --host #{database[:host]} --username #{database[:user]}  --verbose --no-acl --no-owner -d #{database[:database]} #{file}"
         confirm_command("on #{database[:host]} overwrite the database #{database[:database]}")
         exec("PGSSLMODE=#{ssl?} PGPASSWORD=#{database[:password]} pg_restore --port #{database[:port]} --host #{database[:host]} --username #{database[:user]}  --verbose --no-acl --no-owner -d #{database[:database]} #{file}")
