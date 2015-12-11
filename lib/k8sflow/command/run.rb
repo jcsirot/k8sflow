@@ -29,7 +29,7 @@ $ k8sflow run -t 2.10 -p 3000:3000 'run server -p 3000'
       option :heroku, "--heroku APP", "get all envs from heroku"
       option :heroku_db, "--heroku-db", "get DB envs only from heroku"
       option :tty, "--[no-]tty", "Use tty"
-      option :docker_api, "-h", "--host", "docker api endpoint", default: "unix://"
+      option :docker_api, "-h", "--host HOST", "docker api endpoint", default: "unix://"
       option :aliases, "--aliases a=x,b=y", "commands aliases, usefull in the default file"
 
       class << self
